@@ -2,7 +2,6 @@ package data.playlists;
 
 import se.michaelthelin.spotify.SpotifyApi;
 import se.michaelthelin.spotify.exceptions.SpotifyWebApiException;
-import se.michaelthelin.spotify.model_objects.specification.Episode;
 import se.michaelthelin.spotify.model_objects.specification.Paging;
 import se.michaelthelin.spotify.model_objects.specification.PlaylistTrack;
 import se.michaelthelin.spotify.model_objects.specification.Track;
@@ -24,7 +23,6 @@ public class GetPlaylistsItemsExample {
     public static void getPlaylistsItems_Sync() {
         try {
             // プレイリストの曲を格納するリストを作成
-            List<PlaylistTrack> playlistTracks = new ArrayList<>();
             // 最初のリクエストを作成
             GetPlaylistsItemsRequest getPlaylistsItemsRequest = spotifyApi
                     .getPlaylistsItems(playlistId)
@@ -34,7 +32,7 @@ public class GetPlaylistsItemsExample {
             // 最初のページの曲を取得
             Paging<PlaylistTrack> playlistTrackPaging = getPlaylistsItemsRequest.execute();
             // リストに追加
-            playlistTracks.addAll(List.of(playlistTrackPaging.getItems()));
+            List<PlaylistTrack> playlistTracks = new ArrayList<>(List.of(playlistTrackPaging.getItems()));
             // 次のページがあるかどうか判定
             while (playlistTrackPaging.getNext() != null) {
                 // 次のページのURLからoffsetを取得
