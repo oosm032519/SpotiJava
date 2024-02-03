@@ -1,13 +1,17 @@
 package data.playlists;
 
 import se.michaelthelin.spotify.SpotifyApi;
+import se.michaelthelin.spotify.enums.Modality;
 import se.michaelthelin.spotify.exceptions.SpotifyWebApiException;
+import se.michaelthelin.spotify.model_objects.specification.AudioFeatures;
 import se.michaelthelin.spotify.model_objects.specification.Paging;
 import se.michaelthelin.spotify.model_objects.specification.PlaylistTrack;
 import se.michaelthelin.spotify.model_objects.specification.Track;
 import se.michaelthelin.spotify.requests.data.playlists.GetPlaylistsItemsRequest;
 import org.apache.hc.core5.http.ParseException;
+import se.michaelthelin.spotify.requests.data.tracks.GetAudioFeaturesForTrackRequest;
 
+import java.io.*;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,6 +26,7 @@ public class GetPlaylistsItemsExample {
 
     public static void getPlaylistsItems_Sync() {
         try {
+            FileWriter fw = new FileWriter("曲情報.txt");
             // プレイリストの曲を格納するリストを作成
             // 最初のリクエストを作成
             GetPlaylistsItemsRequest getPlaylistsItemsRequest = spotifyApi
@@ -50,17 +55,76 @@ public class GetPlaylistsItemsExample {
             }
             // リストのサイズを出力
             System.out.println("Total: " + playlistTracks.size());
-            // リストの全ての曲の曲名とアーティスト名を出力
+
+            //各項目名を出力
+            fw.write("楽曲名 | アーティスト名 | BPM | Key | Mode | アコースティックス | ダンサビリティ | 元気さ | ライブ感 | スピーチ感 | 明るさ");
+            fw.write(System.lineSeparator());
+
+            // リストの全ての曲の情報を出力
             for (PlaylistTrack playlistTrack : playlistTracks) {
                 // 曲のオブジェクトを取得
                 Track track = (Track) playlistTrack.getTrack();
+
                 // 曲名を取得
                 String trackName = track.getName();
+
                 // アーティスト名を取得
                 String artistName = track.getArtists()[0].getName();
-                // 曲名とアーティスト名を出力
-                System.out.println(trackName + " by " + artistName);
+
+                // 曲のIDを取得
+                String trackId = track.getId();
+
+                // GetAudioFeaturesForTrackRequestクラスのインスタンスを作り、曲のIDをセット
+                GetAudioFeaturesForTrackRequest getAudioFeaturesForTrackRequest = spotifyApi.getAudioFeaturesForTrack(trackId)
+                        .build();
+
+                // executeメソッドを呼び出して、AudioFeaturesオブジェクトを取得
+                AudioFeatures audioFeatures = getAudioFeaturesForTrackRequest.execute();
+
+                // getTempoメソッドを呼び出して、BPMの値を取得
+                float bpm = audioFeatures.getTempo();
+
+                // BPMが115以下の場合は2倍にする
+                if (bpm <= 115) {
+                    bpm *= 2;
+                }
+
+                // getTempoメソッドはfloat型の値を返すので、int型に変換
+                bpm = Math.round(bpm);
+
+                // getKeyメソッドを呼び出して、曲のキーの値を取得
+                int key = audioFeatures.getKey();
+
+                // キーを数字から音名に変換
+                String[] keyNames = {"C", "C♯", "D", "D♯", "E", "F", "F♯", "G", "G♯", "A", "A♯", "B"};
+                String keyName = keyNames[key];
+
+                // getModeメソッドを呼び出して、曲の調の値を取得
+                Modality mode = audioFeatures.getMode();
+
+                // getAcousticnessメソッドを呼び出して、曲のアコースティック度合いを取得
+                float acousticness = audioFeatures.getAcousticness();
+
+                // getDanceabilityメソッドを呼び出して、曲のダンス性を取得
+                float danceability = audioFeatures.getDanceability();
+
+                // getEnergyメソッドを呼び出して、曲のエネルギー度合いを取得
+                float energy = audioFeatures.getEnergy();
+
+                // getLivenessメソッドを呼び出して、曲のライブ感を取得
+                float liveness = audioFeatures.getLiveness();
+
+                // getSpeechinessメソッドを呼び出して、曲のスピーチ感を取得
+                float speechiness = audioFeatures.getSpeechiness();
+
+                // getValenceメソッドを呼び出して、曲のポジティブ感を取得
+                float valence = audioFeatures.getValence();
+
+                // 曲の情報を出力
+                fw.write(trackName + " | " + artistName + " | " + bpm + " | " + keyName + " | " + mode + " | " + acousticness + " | " + danceability + " | " + energy +  " | " + liveness + " | " + speechiness + " | " + valence);
+                fw.write(System.lineSeparator());
             }
+            fw.close();
         } catch (IOException | SpotifyWebApiException | ParseException e) {
             System.out.println("Error: " + e.getMessage());
         }
