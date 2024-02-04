@@ -18,7 +18,7 @@ import java.util.List;
 
 public class GetPlaylistsItemsExample {
     private static final String accessToken = authorization.client_credentials.ClientCredentialsExample.clientCredentials_Sync();
-    private static final String playlistId = "5FnRflOUzM0LboxOnscTsZ";
+    private static final String playlistId = "4yTb5kNnV6FB8Vnabzcvy3";
 
     private static final SpotifyApi spotifyApi = new SpotifyApi.Builder()
             .setAccessToken(accessToken)
@@ -57,7 +57,7 @@ public class GetPlaylistsItemsExample {
             System.out.println("Total: " + playlistTracks.size());
 
             //各項目名を出力
-            fw.write("楽曲名 | アーティスト名 | BPM | Key | Mode | アコースティックス | ダンサビリティ | 元気さ | ライブ感 | スピーチ感 | 明るさ");
+            fw.write("楽曲名 | アーティスト名 | BPM | Key | Mode | アコースティックス | ダンサビリティ | 元気さ | ライブ感 | 明るさ");
             fw.write(System.lineSeparator());
 
             // リストの全ての曲の情報を出力
@@ -81,7 +81,7 @@ public class GetPlaylistsItemsExample {
                 // executeメソッドを呼び出して、AudioFeaturesオブジェクトを取得
                 AudioFeatures audioFeatures = getAudioFeaturesForTrackRequest.execute();
 
-                // getTempoメソッドを呼び出して、BPMの値を取得
+                // getTempoメソッドを呼び出して、BPMを取得
                 float bpm = audioFeatures.getTempo();
 
                 // BPMが115以下の場合は2倍にする
@@ -89,17 +89,17 @@ public class GetPlaylistsItemsExample {
                     bpm *= 2;
                 }
 
-                // getTempoメソッドはfloat型の値を返すので、int型に変換
+                // BPMをfloat型からint型に変換
                 bpm = Math.round(bpm);
 
-                // getKeyメソッドを呼び出して、曲のキーの値を取得
+                // getKeyメソッドを呼び出して、曲のキーを取得
                 int key = audioFeatures.getKey();
 
                 // キーを数字から音名に変換
                 String[] keyNames = {"C", "C♯", "D", "D♯", "E", "F", "F♯", "G", "G♯", "A", "A♯", "B"};
                 String keyName = keyNames[key];
 
-                // getModeメソッドを呼び出して、曲の調の値を取得
+                // getModeメソッドを呼び出して、曲の調を取得
                 Modality mode = audioFeatures.getMode();
 
                 // getAcousticnessメソッドを呼び出して、曲のアコースティック度合いを取得
@@ -114,14 +114,11 @@ public class GetPlaylistsItemsExample {
                 // getLivenessメソッドを呼び出して、曲のライブ感を取得
                 float liveness = audioFeatures.getLiveness();
 
-                // getSpeechinessメソッドを呼び出して、曲のスピーチ感を取得
-                float speechiness = audioFeatures.getSpeechiness();
-
                 // getValenceメソッドを呼び出して、曲のポジティブ感を取得
                 float valence = audioFeatures.getValence();
 
-                // 曲の情報を出力
-                fw.write(trackName + " | " + artistName + " | " + bpm + " | " + keyName + " | " + mode + " | " + acousticness + " | " + danceability + " | " + energy +  " | " + liveness + " | " + speechiness + " | " + valence);
+                // 曲の情報を書き込む
+                fw.write(trackName + " | " + artistName + " | " + bpm + " | " + keyName + " | " + mode + " | " + acousticness + " | " + danceability + " | " + energy +  " | " + liveness + " | " + valence);
                 fw.write(System.lineSeparator());
             }
             fw.close();
