@@ -1,5 +1,6 @@
 package data.playlists;
 
+import authorization.client_credentials.ClientCredentials;
 import se.michaelthelin.spotify.SpotifyApi;
 import se.michaelthelin.spotify.enums.Modality;
 import se.michaelthelin.spotify.exceptions.SpotifyWebApiException;
@@ -16,8 +17,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class GetPlaylistsItemsExample {
-    private static final String accessToken = authorization.client_credentials.ClientCredentialsExample.clientCredentials_Sync();
+public class GetPlaylistsItems {
+    private static final String accessToken = ClientCredentials.clientCredentials_Sync();
     private static final String playlistId = "4yTb5kNnV6FB8Vnabzcvy3";
 
     private static final SpotifyApi spotifyApi = new SpotifyApi.Builder()

@@ -2,13 +2,12 @@ package authorization.client_credentials;
 
 import se.michaelthelin.spotify.SpotifyApi;
 import se.michaelthelin.spotify.exceptions.SpotifyWebApiException;
-import se.michaelthelin.spotify.model_objects.credentials.ClientCredentials;
 import se.michaelthelin.spotify.requests.authorization.client_credentials.ClientCredentialsRequest;
 import org.apache.hc.core5.http.ParseException;
 
 import java.io.IOException;
 
-public class ClientCredentialsExample {
+public class ClientCredentials {
     private static final String clientId = "75fbfb16c5444e02bc6453caea24bcdd";
     private static final String clientSecret = "635faf496b964337937c2d26d92d5dda";
 
@@ -21,7 +20,7 @@ public class ClientCredentialsExample {
 
     public static String clientCredentials_Sync() {
         try {
-            final ClientCredentials clientCredentials = clientCredentialsRequest.execute();
+            final se.michaelthelin.spotify.model_objects.credentials.ClientCredentials clientCredentials = clientCredentialsRequest.execute();
 
             // Set access token for further "spotifyApi" object usage
             spotifyApi.setAccessToken(clientCredentials.getAccessToken());
