@@ -4,7 +4,6 @@ import se.michaelthelin.spotify.SpotifyApi;
 import se.michaelthelin.spotify.exceptions.SpotifyWebApiException;
 import se.michaelthelin.spotify.requests.authorization.client_credentials.ClientCredentialsRequest;
 import org.apache.hc.core5.http.ParseException;
-
 import java.io.IOException;
 
 public class ClientCredentials {
