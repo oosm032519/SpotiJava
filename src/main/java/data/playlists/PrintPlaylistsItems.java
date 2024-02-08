@@ -14,12 +14,24 @@ import se.michaelthelin.spotify.requests.data.tracks.GetAudioFeaturesForTrackReq
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-
+import java.util.Scanner;
 
 
 public class PrintPlaylistsItems {
     private static final String accessToken = ClientCredentials.clientCredentials_Sync();
-    private static final String playlistId = "4yTb5kNnV6FB8Vnabzcvy3";
+    // ユーザーからの入力を受け取るためのScannerを作成
+    private static final Scanner scanner = new Scanner(System.in);
+
+    // プレイリストIDを取得するメソッド
+    private static String getPlaylistId() {
+        System.out.println("プレイリストIDを入力してください（何も入力しない場合はデフォルトのIDが使用されます）:");
+        String input = scanner.nextLine();
+        // 入力がない場合はデフォルトのIDを返す
+        return input.isEmpty() ? "4yTb5kNnV6FB8Vnabzcvy3" : input;
+    }
+
+    // プレイリストIDを取得
+    private static final String playlistId = getPlaylistId();
     private static final SpotifyApi spotifyApi = new SpotifyApi.Builder()
             .setAccessToken(accessToken)
             .build();
