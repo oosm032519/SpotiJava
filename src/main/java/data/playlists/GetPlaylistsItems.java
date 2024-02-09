@@ -1,6 +1,7 @@
 package data.playlists;
 
 import authorization.client_credentials.ClientCredentials;
+import io.github.cdimascio.dotenv.Dotenv;
 import org.apache.hc.core5.http.ParseException;
 import se.michaelthelin.spotify.SpotifyApi;
 import se.michaelthelin.spotify.enums.Modality;
@@ -20,7 +21,8 @@ import java.util.List;
 import java.util.Scanner;
 
 public class GetPlaylistsItems {
-    private static final String accessToken = ClientCredentials.clientCredentials_Sync();
+    static Dotenv dotenv = Dotenv.load();
+    private static final String accessToken = ClientCredentials.clientCredentials();
     // ユーザーからの入力を受け取るためのScannerを作成
     private static final Scanner scanner = new Scanner(System.in);
 
@@ -28,8 +30,8 @@ public class GetPlaylistsItems {
     private static String getPlaylistId() {
         System.out.println("プレイリストIDを入力してください（何も入力しない場合はデフォルトのIDが使用されます）:");
         String input = scanner.nextLine();
-        // 入力がない場合はデフォルトのIDを返す
-        return input.isEmpty() ? "4yTb5kNnV6FB8Vnabzcvy3" : input;
+        // 入力がない場合は環境変数から読み込んだデフォルトのIDを返す
+        return input.isEmpty() ? dotenv.get("PLAYLIST_ID") : input;
     }
 
     // プレイリストIDを取得
@@ -39,76 +41,83 @@ public class GetPlaylistsItems {
             .build();
 
     // プレイリストの曲を取得するメソッド
-    private static List<PlaylistTrack> getPlaylistTracks() throws IOException, SpotifyWebApiException, ParseException {
+    private static List<PlaylistTrack> getPlaylistTracks() {
         List<PlaylistTrack> playlistTracks = new ArrayList<>();
         int offset = 0;
         Paging<PlaylistTrack> playlistTrackPaging;
 
         do {
-            GetPlaylistsItemsRequest getPlaylistsItemsRequest = spotifyApi
-                    .getPlaylistsItems(playlistId)
-                    .limit(100)
-                    .offset(offset)
-                    .build();
+            try {
+                GetPlaylistsItemsRequest getPlaylistsItemsRequest = spotifyApi
+                        .getPlaylistsItems(playlistId)
+                        .limit(100)
+                        .offset(offset)
+                        .build();
 
-            playlistTrackPaging = getPlaylistsItemsRequest.execute();
-            playlistTracks.addAll(List.of(playlistTrackPaging.getItems()));
+                playlistTrackPaging = getPlaylistsItemsRequest.execute();
+                playlistTracks.addAll(List.of(playlistTrackPaging.getItems()));
 
-            if (playlistTrackPaging.getNext() != null) {
-                offset = Integer.parseInt(playlistTrackPaging.getNext().split("offset=|&")[1]);
+                if (playlistTrackPaging.getNext() != null) {
+                    offset = Integer.parseInt(playlistTrackPaging.getNext().split("offset=|&")[1]);
+                }
+            } catch (IOException | SpotifyWebApiException | ParseException e) {
+                System.out.println("プレイリストの曲の取得中にエラーが発生しました: " + e.getMessage());
+                break;
             }
         } while (playlistTrackPaging.getNext() != null);
 
         return playlistTracks;
     }
 
-    // 曲の情報を出力するメソッド
-    private static void printTrackInfo(PlaylistTrack playlistTrack) throws IOException, SpotifyWebApiException, ParseException {
-        Track track = (Track) playlistTrack.getTrack();
-        String trackName = track.getName();
-        String artistName = track.getArtists()[0].getName();
-        String trackId = track.getId();
+    // 曲の情報をファイルに書き込むメソッド
+    private static void printTrackInfo(PlaylistTrack playlistTrack) {
+        try {
+            Track track = (Track) playlistTrack.getTrack();
+            String trackName = track.getName();
+            String artistName = track.getArtists()[0].getName();
+            String trackId = track.getId();
 
-        GetAudioFeaturesForTrackRequest getAudioFeaturesForTrackRequest = spotifyApi.getAudioFeaturesForTrack(trackId)
-                .build();
+            GetAudioFeaturesForTrackRequest getAudioFeaturesForTrackRequest = spotifyApi.getAudioFeaturesForTrack(trackId)
+                    .build();
 
-        AudioFeatures audioFeatures = getAudioFeaturesForTrackRequest.execute();
+            AudioFeatures audioFeatures = getAudioFeaturesForTrackRequest.execute();
 
-        float bpm = audioFeatures.getTempo();
-        if (bpm <= 115) {
-            bpm *= 2;
-        }
-        bpm = Math.round(bpm);
+            float bpm = audioFeatures.getTempo();
+            if (bpm <= 115) {
+                bpm *= 2;
+            }
+            bpm = Math.round(bpm);
 
-        int key = audioFeatures.getKey();
-        String[] keyNames = {"C", "C♯", "D", "D♯", "E", "F", "F♯", "G", "G♯", "A", "A♯", "B"};
-        String keyName = keyNames[key];
+            int key = audioFeatures.getKey();
+            String[] keyNames = {"C", "C♯", "D", "D♯", "E", "F", "F♯", "G", "G♯", "A", "A♯", "B"};
+            String keyName = keyNames[key];
 
-        Modality mode = audioFeatures.getMode();
-        float acousticness = audioFeatures.getAcousticness();
-        float danceability = audioFeatures.getDanceability();
-        float energy = audioFeatures.getEnergy();
-        float liveness = audioFeatures.getLiveness();
-        float valence = audioFeatures.getValence();
+            Modality mode = audioFeatures.getMode();
+            float acousticness = audioFeatures.getAcousticness();
+            float danceability = audioFeatures.getDanceability();
+            float energy = audioFeatures.getEnergy();
+            float liveness = audioFeatures.getLiveness();
+            float valence = audioFeatures.getValence();
 
-        try (PrintWriter writer = new PrintWriter(new FileWriter("曲情報.txt", true))) {
-            writer.println(trackName + " | " + artistName + " | " + bpm + " | " + keyName + " | " + mode + " | " + acousticness + " | " + danceability + " | " + energy + " | " + liveness + " | " + valence);
+            try (PrintWriter writer = new PrintWriter(new FileWriter("曲情報.txt", true))) {
+                writer.println(trackName + " | " + artistName + " | " + bpm + " | " + keyName + " | " + mode + " | " + acousticness + " | " + danceability + " | " + energy + " | " + liveness + " | " + valence);
+            }
+        } catch (IOException | SpotifyWebApiException | ParseException e) {
+            System.out.println("曲の情報の出力中にエラーが発生しました: " + e.getMessage());
         }
     }
 
     public static void getPlaylistsItems_Sync() {
-        try {
-            List<PlaylistTrack> playlistTracks = getPlaylistTracks();
-            try (PrintWriter writer = new PrintWriter(new FileWriter("曲情報.txt", true))) {
-                writer.println("Total: " + playlistTracks.size());
-                writer.println("楽曲名 | アーティスト名 | BPM | Key | Mode | アコースティックス | ダンサビリティ | 元気さ | ライブ感 | 明るさ");
-            }
+        List<PlaylistTrack> playlistTracks = getPlaylistTracks();
+        try (PrintWriter writer = new PrintWriter(new FileWriter("曲情報.txt", true))) {
+            writer.println("Total: " + playlistTracks.size());
+            writer.println("楽曲名 | アーティスト名 | BPM | Key | Mode | アコースティックス | ダンサビリティ | 元気さ | ライブ感 | 明るさ");
+        } catch (IOException e) {
+            System.out.println("ファイル書き込み中にエラーが発生しました: " + e.getMessage());
+        }
 
-            for (PlaylistTrack playlistTrack : playlistTracks) {
-                printTrackInfo(playlistTrack);
-            }
-        } catch (IOException | SpotifyWebApiException | ParseException e) {
-            System.out.println("Error: " + e.getMessage());
+        for (PlaylistTrack playlistTrack : playlistTracks) {
+            printTrackInfo(playlistTrack);
         }
     }
 
