@@ -10,8 +10,16 @@ import java.io.IOException;
 
 public class ClientCredentials {
     static Dotenv dotenv = Dotenv.load();
-    private static final String clientId = dotenv.get("CLIENT_ID");
-    private static final String clientSecret = dotenv.get("CLIENT_SECRET");
+    private static final String clientId;
+    private static final String clientSecret;
+
+    static {
+        clientId = dotenv.get("CLIENT_ID");
+        clientSecret = dotenv.get("CLIENT_SECRET");
+        if (clientId == null || clientSecret == null) {
+            throw new IllegalArgumentException("環境変数 CLIENT_ID または CLIENT_SECRET が設定されていません。");
+        }
+    }
 
     private static final SpotifyApi spotifyApi = new SpotifyApi.Builder()
             .setClientId(clientId)
@@ -43,7 +51,6 @@ public class ClientCredentials {
             throw new RuntimeException(e);
         }
     }
-
 
     public static void main(String[] args) {
         clientCredentials();
